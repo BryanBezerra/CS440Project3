@@ -21,117 +21,40 @@
 #   x_1 * w_1 + x_2 * w_2 + x_3 * w_3
 
 
-import random
 import numpy as np
-
-# in the last lecture he was saying that # of samples should be greater or equal to the # of features so we can start from 1601 and increase it later
-numSamples = 1601
-
-# one hot vectors could also be represented in a way such that U = (0,0,0,0)
-
-color_to_one_hot = {
-    "R": (0, 0, 0, 1),
-    "B": (0, 0, 1, 0),
-    "Y": (0, 1, 0, 0),
-    "G": (1, 0, 0, 0),
-    "U": (0, 0, 0, 0)
-}
+from BombDiagram import BombDiagram
 
 
-def generate_grid(grid_size):
-    grid = np.full((grid_size, grid_size), "U", dtype=str)
-    return grid
+# Writeup needs performance of the model at 2000, 2500, 3000, and 5000 samples.
+# Samples get generated pretty much instantly, don't have to worry about saving them, just make new ones each time.
+samples = []
+NUM_SAMPLES = 5000
+DIAGRAM_SIZE = 20
+for i in range(NUM_SAMPLES):
+    samples.append(BombDiagram(DIAGRAM_SIZE))
+
+# Use the get_flat_image() BombDiagram method to get a flat array of the diagram with a 1 appended to the front
+# TODO: Use the generated samples to train the model
 
 
-def getRandomHotColor(random_color):
-    # getting the random hot vector color
-    random_hot_vector = color_to_one_hot[random_color]
-    return random_hot_vector
 
+# # just setting update to print out everything
+# np.set_printoptions(threshold=np.inf)
+# print(allGrids[0])
+# print(encode_grid(allGrids[0], color_to_one_hot))
+#
+#
+# ## MODEL SPACE
+#
+# numFeatures = len(allGrids)
 
-def RowColoring(grid, colorsForRow):
-    row_index = random.choice(sizeForRow)
-    random_color = random.choice(colorsForRow)
-    # cursorOne = random_color
-    # if cursorOne = "R":
-    # check if cursorTwo = "Y"
-    colorsForRow.remove(random_color)
-    sizeForRow.remove(row_index)
-    grid[row_index, :] = random_color
-    return grid
-
-
-def ColumnColoring(grid, colorsForCol):
-    col_index = random.choice(sizeForCol)
-    random_color = random.choice(colorsForCol)
-    colorsForCol.remove(random_color)
-    sizeForCol.remove(col_index)
-    grid[:, col_index] = random_color
-    return grid
-
-
-# to-do: we need to add 1 to beginning for bias term
-# to-do2: we need to create a class that takes two inputs, the data and the label (safe or dangerous)
-# arrays of size 1600 vectors
-def encode_grid(grid, color_to_one_hot):
-    # Flatten the grid and encode each color using one-hot vectors
-    encoded_vector = []
-
-    for row in grid:
-        for cell in row:
-            encoded_vector.extend(color_to_one_hot[cell])
-
-    return np.array(encoded_vector)
-
-
-allGrids = []
-## when we create the data does every data need to be unique?
-
-for i in range(numSamples):
-    colorsFor = ["R", "B", "Y", "G"]
-    sizeForRow = list(range(0, 20))
-    sizeForCol = list(range(0, 20))
-
-    # generating the grid
-    grid = generate_grid(20)
-    # filling the first row
-    grid = RowColoring(grid, colorsFor)
-    # filling first col
-    grid = ColumnColoring(grid, colorsFor)
-    # filling second row
-    grid = RowColoring(grid, colorsFor)
-    # filling second col
-    grid = ColumnColoring(grid, colorsFor)
-
-    allGrids.append(grid)
-
-# just setting update to print out everything
-np.set_printoptions(threshold=np.inf)
-print(allGrids[0])
-print(encode_grid(allGrids[0], color_to_one_hot))
-
-## needs the labeling the data whether its safe or dangerous
-
-
-# Function to label the grid as safe or dangerous
-# def label_grid(grid):
-# if is_dangerous(grid):
-#        return "Dangerous"
-#    else:
-#        return "Safe"
-
-
-## MODEL SPACE
-
-numFeatures = len(allGrids)
-
-weightVector = np.random.randn(numFeatures, 1)
-
-
-# f(x_1,x_2,...,x_d) = sigmoid(w_0 + x_1 w_1 + x_2 w_2 + ... + w_d x_d)
-def predict(inputVector, weightVector):
-    result = np.dot(inputVector, weightVector)
-    return sigmoid(result)
+# weightVector = np.random.randn(numFeatures, 1)
+#
+#
+# # f(x_1,x_2,...,x_d) = sigmoid(w_0 + x_1 w_1 + x_2 w_2 + ... + w_d x_d)
+# def predict(inputVector, weightVector):
+#     result = np.dot(inputVector, weightVector)
+#     return sigmoid(result)
 
 
 # it turns the result of dot product into a probability thats between 0 to 1.
