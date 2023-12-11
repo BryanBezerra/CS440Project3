@@ -51,13 +51,17 @@ for i in range(NUM_SAMPLES):
 # weightVector = np.random.randn(numFeatures, 1)
 #
 #
-# # f(x_1,x_2,...,x_d) = sigmoid(w_0 + x_1 w_1 + x_2 w_2 + ... + w_d x_d)
-# def predict(inputVector, weightVector):
-#     result = np.dot(inputVector, weightVector)
-#     return sigmoid(result)
+
+
+
+# f(x_1,x_2,...,x_d) = sigmoid(w_0 + x_1 w_1 + x_2 w_2 + ... + w_d x_d)
+def predict(inputVector, weightVector):
+     result = np.dot(inputVector, weightVector)
+     return sigmoid(result)
 
 
 # it turns the result of dot product into a probability thats between 0 to 1.
+# activation function (non-linear function)
 def sigmoid(z):
     return 1 / (1 + np.exp(-z))
 
@@ -76,3 +80,33 @@ def binary_cross_entropy_loss(yTrue, yPredicted):
 def gradient_binary_cross_entropy(yTrue, yPredicted, x_j):
     gradient = -yTrue * (1 - yPredicted) * x_j + (1 - yTrue) * yPredicted * x_j
     return gradient
+
+# linear regression model with forward passing
+# x = input space
+# y = output space
+# learningRate = size of the steps 
+# 
+def train_linear_regression_sgd(x, y, learningRate, numEpochs):
+    numExamples, numFeatures = x.shape
+    weights = np.random.randn(numFeatures, 1)
+    for epoch in range(numEpochs):
+        
+
+        for i in range(numExamples):
+            # random data point
+            random_index = np.random.randint(numExamples)
+            x_i = x[random_index:random_index + 1, :]
+            y_i = y[random_index:random_index + 1]
+
+            # forward pass
+            prediction = sigmoid(predict(x_i, weights))
+
+            loss = binary_cross_entropy_loss(y_i, prediction)
+
+            gradient = gradient_binary_cross_entropy(y_i, prediction, x_i.T)
+
+            # update weights using stochastic gradient descent
+            weights -= learningRate * gradient
+
+        
+    return weights
