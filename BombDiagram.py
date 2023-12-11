@@ -138,7 +138,7 @@ class BombDiagram:
 if __name__ == '__main__':
     """Example"""
     # Checking a pixel's color
-    test = BombDiagram(4)
+    test = BombDiagram(20)
     print(test)
     print(test.get_flat_image())
 
