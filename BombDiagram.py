@@ -14,16 +14,20 @@ class BombDiagram:
     """
     NUMBER_OF_COLORS = 4
 
-    def __init__(self, image_size):
+    def __init__(self, image_size, force_dangerous=False):
         """Initializes the instance based on image size.
 
         Args:
             image_size: the number of pixels on each side of the diagram
+            force_dangerous: produces only dangerous bomb configurations
         """
         self.isDangerous = False
         self.wireToCut = None
         self.image = np.zeros((image_size, image_size, self.NUMBER_OF_COLORS), dtype=np.uint8)
-        self.create_random_image()
+        if force_dangerous:
+            self.create_dangerous_image()
+        else:
+            self.create_random_image()
 
     def create_random_image(self):
         """Creates a random image conforming to the generation guidelines.
@@ -64,6 +68,46 @@ class BombDiagram:
 
             if WireColor.RED not in remaining_colors and WireColor.YELLOW in remaining_colors:
                 self.isDangerous = True
+
+    def create_dangerous_image(self):
+        self.isDangerous = True
+        red_wire_was_placed = False
+        num_wires_placed = 0
+        image_size = self.image.shape[0]
+        remaining_colors = [WireColor.RED, WireColor.BLUE, WireColor.GREEN]
+        remaining_first_indices = [i for i in range(image_size)]
+        remaining_second_indices = remaining_first_indices.copy()
+        r = random.random()
+        if r < .5:
+            first_action = self.color_column
+            second_action = self.color_row
+        else:
+            first_action = self.color_row
+            second_action = self.color_column
+
+        while len(remaining_colors) > 0:
+            r = random.randrange(len(remaining_first_indices))
+            index = remaining_first_indices.pop(r)
+            r = random.randrange(len(remaining_colors))
+            color = remaining_colors.pop(r)
+            first_action(index, color)
+            num_wires_placed += 1
+
+            if color == WireColor.RED:
+                remaining_colors.append(WireColor.YELLOW)
+
+            if num_wires_placed == 3:
+                self.wireToCut = color
+
+            r = random.randrange(len(remaining_second_indices))
+            index = remaining_second_indices.pop(r)
+            r = random.randrange(len(remaining_colors))
+            color = remaining_colors.pop(r)
+            second_action(index, color)
+            num_wires_placed += 1
+
+            if color == WireColor.RED:
+                remaining_colors.append(WireColor.YELLOW)
 
     def color_column(self, column, color):
         """Colors one column in the image.
@@ -138,7 +182,5 @@ class BombDiagram:
 if __name__ == '__main__':
     """Example"""
     # Checking a pixel's color
-    test = BombDiagram(20)
+    test = BombDiagram(20, True)
     print(test)
-    print(test.get_flat_image())
-
