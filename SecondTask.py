@@ -11,4 +11,5 @@
 # Categorical cross entropy loss (softmax function)
 
 # Training Algorithm
-# 
+# ?
+ 
