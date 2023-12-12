@@ -1,6 +1,7 @@
 import math
 
 import numpy as np
+import matplotlib.pyplot as plt
 import random
 from BombDiagram import BombDiagram
 
@@ -64,6 +65,8 @@ class FirstTaskTrainer:
         return loss_sum / len(self.independent_test_data)
 
     def train_model_stochastic(self, num_steps, alpha):
+        training_loss = []
+        testing_loss = []
         for i in range(num_steps):
             if len(self.samples) == 0:
                 self.samples = self.used_samples.copy()
@@ -76,5 +79,20 @@ class FirstTaskTrainer:
             self.weights = self.weights - alpha * (prediction - data_point.is_dangerous()) * data_point.get_flat_image()
             if i % 1000 == 0 or i == 1:
                 print("Step", i, "Loss:", self.calc_loss_on_samples(), "Loss on independent data:", self.calc_loss_on_independent_data())
-
+                training_loss.append(self.calc_loss_on_samples())
+                testing_loss.append(self.calc_loss_on_independent_data())
+                
         print("Step", num_steps, "Loss:", self.calc_loss_on_samples(), "Loss on independent data:", self.calc_loss_on_independent_data())
+        training_loss.append(self.calc_loss_on_samples())
+        testing_loss.append(self.calc_loss_on_independent_data())
+        return training_loss, testing_loss
+    
+    def graph_loss(self, training_loss, testing_loss):
+        plt.plot(training_loss, label='Learning Loss')
+        plt.plot(testing_loss, label='Testing Loss')
+        plt.xlabel('Number of Steps')
+        plt.ylabel('Loss')
+        plt.title('Learning and Testing Loss')
+        plt.legend()
+        plt.show()
+
