@@ -12,6 +12,7 @@ class FirstTaskTrainer:
         self.diagram_size = diagram_size
         self.weights = self.generate_starting_weights()
         self.samples = []
+        self.independent_test_data = []
         self.used_samples = []
         self.loss_values = []
         self.num_success = 0
@@ -24,6 +25,7 @@ class FirstTaskTrainer:
     def add_samples(self, num_samples):
         for i in range(num_samples):
             self.samples.append(BombDiagram(self.diagram_size))
+            self.independent_test_data.append(BombDiagram(self.diagram_size))
 
     def clear_samples(self):
         self.samples.clear()
@@ -55,10 +57,16 @@ class FirstTaskTrainer:
             count += 1
         return loss_sum / count
 
+    def calc_loss_on_independent_data(self):
+        loss_sum = 0
+        for sample in self.independent_test_data:
+            loss_sum += self.loss(sample)
+        return loss_sum / len(self.independent_test_data)
+
     def train_model_stochastic(self, num_steps, alpha):
         for i in range(num_steps):
             if len(self.samples) == 0:
-                self.samples = self.used_samples
+                self.samples = self.used_samples.copy()
                 random.shuffle(self.samples)
                 self.used_samples.clear()
 
@@ -66,5 +74,7 @@ class FirstTaskTrainer:
             self.used_samples.append(data_point)
             prediction = self.predict(data_point)
             self.weights = self.weights - alpha * (prediction - data_point.is_dangerous()) * data_point.get_flat_image()
-            print("Loss:", self.calc_loss_on_samples())
+            if i % 1000 == 0 or i == 1:
+                print("Step", i, "Loss:", self.calc_loss_on_samples(), "Loss on independent data:", self.calc_loss_on_independent_data())
 
+        print("Step", num_steps, "Loss:", self.calc_loss_on_samples(), "Loss on independent data:", self.calc_loss_on_independent_data())
