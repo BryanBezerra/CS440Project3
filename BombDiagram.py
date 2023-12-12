@@ -9,7 +9,7 @@ class BombDiagram:
     Attributes:
         image: A 3D numpy array of the same (image_size, image_size, 4) representing
         the wire configuration.
-        isDangerous: true if the configuration is dangerous, otherwise false
+        isDangerous: 1 if the configuration is dangerous, otherwise 0
         wireToCut: which WireColor should be cut, None if the bomb is not dangerous
     """
     NUMBER_OF_COLORS = 4
@@ -19,9 +19,9 @@ class BombDiagram:
 
         Args:
             image_size: the number of pixels on each side of the diagram
-            force_dangerous: produces only dangerous bomb configurations
+            force_dangerous: optional, produces only dangerous bomb configurations
         """
-        self.isDangerous = False
+        self.isDangerous = 0
         self.wireToCut = None
         self.image = np.zeros((image_size, image_size, self.NUMBER_OF_COLORS), dtype=np.uint8)
         if force_dangerous:
@@ -55,9 +55,9 @@ class BombDiagram:
             first_action(index, color)
 
             if WireColor.RED not in remaining_colors and WireColor.YELLOW in remaining_colors:
-                self.isDangerous = True
+                self.isDangerous = 1
 
-            if self.isDangerous and len(remaining_colors) == 1:
+            if self.isDangerous == 1 and len(remaining_colors) == 1:
                 self.wireToCut = color
 
             r = random.randrange(len(remaining_second_indices))
@@ -67,11 +67,10 @@ class BombDiagram:
             second_action(index, color)
 
             if WireColor.RED not in remaining_colors and WireColor.YELLOW in remaining_colors:
-                self.isDangerous = True
+                self.isDangerous = 1
 
     def create_dangerous_image(self):
-        self.isDangerous = True
-        red_wire_was_placed = False
+        self.isDangerous = 1
         num_wires_placed = 0
         image_size = self.image.shape[0]
         remaining_colors = [WireColor.RED, WireColor.BLUE, WireColor.GREEN]
@@ -155,13 +154,14 @@ class BombDiagram:
                     result += NEUTRAL
             result += "\n"
         result += "Is dangerous: " + str(self.isDangerous) + "\n"
-        if self.isDangerous:
+        if self.isDangerous == 1:
             result += "Wire to cut: " + str(self.wireToCut.name)
         else:
             result += "No need to cut a wire"
         return result
 
     def is_dangerous(self):
+        """Returns 1 if bomb is dangerous, otherwise 0"""
         return self.isDangerous
 
     def get_wire_to_cut(self):
@@ -182,5 +182,5 @@ class BombDiagram:
 if __name__ == '__main__':
     """Example"""
     # Checking a pixel's color
-    test = BombDiagram(20, True)
+    test = BombDiagram(20, False)
     print(test)

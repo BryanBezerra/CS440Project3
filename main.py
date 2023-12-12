@@ -14,24 +14,7 @@
 #   Linear regression
 #   f(x) = sigmoid( w.x ) w is a vector of size 1600
 
-# Training algorithm
-#   SGD
-#   x = (1, x_1, x_2, x_3)
-#   general linear function
-#   x_1 * w_1 + x_2 * w_2 + x_3 * w_3
 
-
-import numpy as np
-from BombDiagram import BombDiagram
-from MLFunctions import *
-
-# Writeup needs performance of the model at 2000, 2500, 3000, and 5000 samples.
-# Samples get generated pretty much instantly, don't have to worry about saving them, just make new ones each time.
-samples = []
-NUM_SAMPLES = 5000
-DIAGRAM_SIZE = 20
-for i in range(NUM_SAMPLES):
-    samples.append(BombDiagram(DIAGRAM_SIZE))
 
 
 # Use the get_flat_image() BombDiagram method to get a flat array of the diagram with a 1 appended to the front
