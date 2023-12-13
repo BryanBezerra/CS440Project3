@@ -64,44 +64,49 @@ class FirstTaskTrainer:
             loss_sum += self.loss(sample)
         return loss_sum / len(self.independent_test_data)
 
+    def refresh_samples(self):
+        self.samples = self.used_samples.copy()
+        random.shuffle(self.samples)
+        self.used_samples.clear()
+
+    def train_on_one_sample(self, alpha):
+        data_point = self.samples.pop()
+        self.used_samples.append(data_point)
+        prediction = self.predict(data_point)
+        self.weights = self.weights - alpha * (prediction - data_point.is_dangerous()) * data_point.get_flat_image()
+
     def train_model_stochastic(self, num_steps, alpha, loss_calc_freq, show_training_data=True):
         training_loss = []
         testing_loss = []
         for i in range(num_steps):
             if len(self.samples) == 0:
-                self.samples = self.used_samples.copy()
-                random.shuffle(self.samples)
-                self.used_samples.clear()
+                self.refresh_samples()
 
-            data_point = self.samples.pop()
-            self.used_samples.append(data_point)
-            prediction = self.predict(data_point)
-            self.weights = self.weights - alpha * (prediction - data_point.is_dangerous()) * data_point.get_flat_image()
-            if (i % loss_calc_freq == 0 and i != 0) or i == 1:
-                if show_training_data:
-                    print("Step", i, "Loss:", self.calc_loss_on_samples(), "Loss on independent data:", self.calc_loss_on_independent_data())
-                training_loss.append(self.calc_loss_on_samples())
-                testing_loss.append(self.calc_loss_on_independent_data())
+            self.train_on_one_sample(alpha)
+
+            if show_training_data:
+                if i % loss_calc_freq == 0 or i == 0:
+                    training_loss.append(self.calc_loss_on_samples())
+                    testing_loss.append(self.calc_loss_on_independent_data())
+                    print("Step", i + 1, "Loss:", training_loss[-1], "Loss on independent data:", testing_loss[-1])
+
         if show_training_data:
-            print("Step", num_steps, "Loss:", self.calc_loss_on_samples(), "Loss on independent data:", self.calc_loss_on_independent_data())
             training_loss.append(self.calc_loss_on_samples())
             testing_loss.append(self.calc_loss_on_independent_data())
+            print("Step", num_steps, "Loss:", training_loss[-1], "Loss on independent data:", testing_loss[-1])
+            self.graph_loss(training_loss, testing_loss, loss_calc_freq, alpha)
 
-        if show_training_data:
-            self.graph_loss(training_loss, testing_loss)
-
-        return training_loss, testing_loss
-    
-    def graph_loss(self, training_loss, testing_loss, num_x_axis_ticks=10):
-        plt.plot(training_loss, label='Learning Loss')
-        plt.plot(testing_loss, label='Testing Loss')
+    def graph_loss(self, training_loss, testing_loss, loss_calc_freq, alpha, num_x_axis_ticks=10):
         data_len = len(training_loss)
+        plt.plot(training_loss, label='Learning Data')
+        plt.plot(testing_loss, label='Testing Data')
         x_axis_ticks = np.arange(0, data_len, data_len // num_x_axis_ticks)
-        x_axis_labels = [str(i * 1000) for i in range(0, data_len, data_len // num_x_axis_ticks)]
+        x_axis_labels = [str(i * loss_calc_freq) for i in range(0, data_len, (data_len // num_x_axis_ticks))]
         plt.xticks(x_axis_ticks, x_axis_labels)
         plt.xlabel('Number of Steps')
         plt.ylabel('Loss')
-        plt.title('Learning and Testing Loss')
+        title = "Learning Data vs Testing Data\nat α = " + str(alpha)
+        plt.title(title)
+        plt.suptitle('Model Loss')
         plt.legend()
         plt.show()
-
