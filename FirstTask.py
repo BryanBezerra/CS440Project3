@@ -17,5 +17,5 @@ from FirstTaskTrainer import FirstTaskTrainer
 # trainer.train_model_stochastic(2000000, .035, 5000, True)
 
 trainer = FirstTaskTrainer()
-trainer.add_samples(50000)
+trainer.add_generated_samples(50000)
 trainer.train_model_stochastic(5000000, .035, 12500, True)
