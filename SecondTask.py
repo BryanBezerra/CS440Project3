@@ -16,7 +16,7 @@
 # Categorical cross entropy loss (softmax function)
 
 # Training Algorithm
-# Gradient descent
+# Grimport sys
 
 import numpy as np
 
@@ -51,3 +51,29 @@ def multiclass_classification(input_vector, weights_red, weights_blue, weights_g
     output = np.array([softmax_red, softmax_blue, softmax_green, softmax_yellow])
 
     return output
+
+def sgd_update(weights, gradients, alpha):
+    weights -= alpha * gradients
+    return weights
+
+def training_model_sgd(x, weights_red, weights_blue, weights_green, weights_yellow, alpha, num_steps):
+    for step in range(num_steps):
+        
+        random_index = np.random.randint(len(x))
+        random_data_point, true_label = x[random_index]
+        
+        # forward pass
+        output_probs = multiclass_classification(random_data_point, weights_red, weights_blue, weights_green, weights_yellow)
+
+        loss = categorical_cross_entropy_loss(true_label, output_probs)
+
+        weights_red = sgd_update(weights_red, output_probs[0] - true_label[0], alpha)
+        weights_blue = sgd_update(weights_blue, output_probs[1] - true_label[1], alpha)
+        weights_green = sgd_update(weights_green, output_probs[2] - true_label[2], alpha)
+        weights_yellow = sgd_update(weights_yellow, output_probs[3] - true_label[3], alpha)
+
+        if step % 100 == 0:
+            print(f"Step {step}, Loss: {loss}")
+
+    # just return the final weights of each color
+    return weights_red, weights_blue, weights_green, weights_yellow
