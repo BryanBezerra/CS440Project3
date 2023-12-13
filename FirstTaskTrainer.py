@@ -98,6 +98,7 @@ class FirstTaskTrainer:
 
     def graph_loss(self, training_loss, testing_loss, loss_calc_freq, alpha, num_x_axis_ticks=10):
         data_len = len(training_loss)
+        num_samples = len(self.samples) + len(self.used_samples)
         plt.plot(training_loss, label='Learning Data')
         plt.plot(testing_loss, label='Testing Data')
         x_axis_ticks = np.arange(0, data_len, data_len // num_x_axis_ticks)
@@ -105,7 +106,7 @@ class FirstTaskTrainer:
         plt.xticks(x_axis_ticks, x_axis_labels)
         plt.xlabel('Number of Steps')
         plt.ylabel('Loss')
-        title = "Learning Data vs Testing Data\nat α = " + str(alpha)
+        title = "Learning Data vs Testing Data\nat α = " + str(alpha) + " sample size = " + str(num_samples)
         plt.title(title)
         plt.suptitle('Model Loss')
         plt.legend()
