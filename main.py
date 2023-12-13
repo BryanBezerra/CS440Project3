@@ -43,7 +43,6 @@
 
 
 
-
 # linear regression model with forward passing
 # x = input space
 # y = output space
