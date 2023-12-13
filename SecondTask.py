@@ -56,10 +56,14 @@ def sgd_update(weights, gradients, alpha):
     weights -= alpha * gradients
     return weights
 
-def training_model_sgd(x, true_label, weights_red, weights_blue, weights_green, weights_yellow, alpha, num_steps):
+def training_model_sgd(x, weights_red, weights_blue, weights_green, weights_yellow, alpha, num_steps):
     for step in range(num_steps):
+        
+        random_index = np.random.randint(len(x))
+        random_data_point, true_label = x[random_index]
+        
         # forward pass
-        output_probs = multiclass_classification(x, weights_red, weights_blue, weights_green, weights_yellow)
+        output_probs = multiclass_classification(random_data_point, weights_red, weights_blue, weights_green, weights_yellow)
 
         loss = categorical_cross_entropy_loss(true_label, output_probs)
 
