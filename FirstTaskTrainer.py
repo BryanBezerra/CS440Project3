@@ -85,10 +85,10 @@ class FirstTaskTrainer:
             self.train_on_one_sample(alpha)
 
             if show_training_data:
-                if i % loss_calc_freq == 0 or i == 0:
+                if i % loss_calc_freq == 0:
                     training_loss.append(self.calc_loss_on_samples())
                     testing_loss.append(self.calc_loss_on_independent_data())
-                    print("Step", i + 1, "Loss:", training_loss[-1], "Loss on independent data:", testing_loss[-1])
+                    print("Step", i, "Loss:", training_loss[-1], "Loss on independent data:", testing_loss[-1])
 
         if show_training_data:
             training_loss.append(self.calc_loss_on_samples())
