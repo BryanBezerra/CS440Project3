@@ -23,7 +23,7 @@ class BombDiagram:
         """
         self.isDangerous = 0
         self.wireToCut = None
-        self.image = np.zeros((image_size, image_size, self.NUMBER_OF_COLORS), dtype=np.uint8)
+        self.image = np.zeros((image_size, image_size, self.NUMBER_OF_COLORS), dtype=np.dtype('d'))
         if force_dangerous:
             self.create_dangerous_image()
         else:
@@ -70,6 +70,12 @@ class BombDiagram:
                 self.isDangerous = 1
 
     def create_dangerous_image(self):
+        """Creates a random dangerous image conforming to the generation guidelines.
+
+        Four wires of different colors are laid down alternating rows and
+        columns, half the time starting with rows and half the time with columns.
+        Red is always laid down before yellow.
+        """
         self.isDangerous = 1
         num_wires_placed = 0
         image_size = self.image.shape[0]

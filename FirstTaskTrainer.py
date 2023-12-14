@@ -41,7 +41,7 @@ class FirstTaskTrainer:
         """
         num_features = self.diagram_size * self.diagram_size * self.NUM_COLORS + 1
         start_magnitude = (num_features ** 0.5) ** -1
-        return np.random.uniform(-start_magnitude, start_magnitude, num_features)
+        return np.random.uniform(-start_magnitude, start_magnitude, num_features).astype("float64")
 
     def add_generated_samples(self, num_samples):
         """Generates samples to train the model and a separate set of samples to test the model.
@@ -131,23 +131,38 @@ class FirstTaskTrainer:
         random.shuffle(self.samples)
         self.used_samples.clear()
 
-    def train_on_one_sample(self, alpha):
+    # def train_on_one_sample(self, alpha):
+    #     """Trains the model on a single datapoint.
+    #
+    #     Args:
+    #         alpha: the learning rate of the model, must be > 0
+    #     """
+    #     data_point = self.samples.pop()
+    #     self.used_samples.append(data_point)
+    #     prediction = self.predict(data_point)
+    #     self.weights = self.weights - alpha * (prediction - data_point.is_dangerous()) * data_point.get_flat_image()
+
+    def train_on_one_sample(self, alpha, regularization_lambda):
         """Trains the model on a single datapoint.
 
         Args:
             alpha: the learning rate of the model, must be > 0
+            regularization_lambda: higher number creates preference for smaller weights
         """
         data_point = self.samples.pop()
         self.used_samples.append(data_point)
-        prediction = self.predict(data_point)
-        self.weights = self.weights - alpha * (prediction - data_point.is_dangerous()) * data_point.get_flat_image()
+        prediction = self.sigmoid(data_point)
+        loss_gradient = (prediction - data_point.is_dangerous()) * data_point.get_flat_image()
+        ridge_regularization = 2 * regularization_lambda * np.sum(self.weights)
+        self.weights = self.weights - alpha * (loss_gradient + ridge_regularization)
 
-    def train_model_stochastic(self, num_steps, alpha, loss_calc_freq, show_training_data=True):
+    def train_model_stochastic(self, num_steps, alpha, reg_lambda, loss_calc_freq, show_training_data=True):
         """Uses stochastic gradient to train the model on the training data.
 
         Args:
             num_steps: how many times the model will be trained on a random data point
             alpha: the learning rate of the model, must be > 0
+            reg_lambda: higher number creates preference for smaller weights
             loss_calc_freq: how often the program calculates and prints the current loss on all sample and test data
             show_training_data: true if the program is to print and graph loss data, otherwise false; defaults true
         """
@@ -157,7 +172,7 @@ class FirstTaskTrainer:
             if len(self.samples) == 0:
                 self.refresh_samples()
 
-            self.train_on_one_sample(alpha)
+            self.train_on_one_sample(alpha, reg_lambda)
 
             if show_training_data:
                 if i % loss_calc_freq == 0:
@@ -170,6 +185,8 @@ class FirstTaskTrainer:
             testing_loss.append(self.calc_loss_on_independent_data())
             print("Step", num_steps, "Loss:", training_loss[-1], "Loss on independent data:", testing_loss[-1])
             self.graph_loss(training_loss, testing_loss, loss_calc_freq, alpha)
+            print("Min training:", np.min(training_loss))
+            print("Min test:", np.min(testing_loss))
 
     def graph_loss(self, training_loss, testing_loss, loss_calc_freq, alpha, num_x_axis_ticks=10):
         """Graphs the model's loss over time.
