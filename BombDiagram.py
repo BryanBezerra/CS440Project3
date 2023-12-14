@@ -188,5 +188,6 @@ class BombDiagram:
 if __name__ == '__main__':
     """Example"""
     # Checking a pixel's color
-    test = BombDiagram(20, False)
+    test = BombDiagram(20, True)
     print(test)
+    print(test.get_wire_to_cut().value[0])

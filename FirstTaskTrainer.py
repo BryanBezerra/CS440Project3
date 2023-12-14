@@ -131,17 +131,6 @@ class FirstTaskTrainer:
         random.shuffle(self.samples)
         self.used_samples.clear()
 
-    # def train_on_one_sample(self, alpha):
-    #     """Trains the model on a single datapoint.
-    #
-    #     Args:
-    #         alpha: the learning rate of the model, must be > 0
-    #     """
-    #     data_point = self.samples.pop()
-    #     self.used_samples.append(data_point)
-    #     prediction = self.predict(data_point)
-    #     self.weights = self.weights - alpha * (prediction - data_point.is_dangerous()) * data_point.get_flat_image()
-
     def train_on_one_sample(self, alpha, regularization_lambda):
         """Trains the model on a single datapoint.
 
@@ -184,9 +173,10 @@ class FirstTaskTrainer:
             training_loss.append(self.calc_loss_on_samples())
             testing_loss.append(self.calc_loss_on_independent_data())
             print("Step", num_steps, "Loss:", training_loss[-1], "Loss on independent data:", testing_loss[-1])
-            self.graph_loss(training_loss, testing_loss, loss_calc_freq, alpha)
             print("Min training:", np.min(training_loss))
             print("Min test:", np.min(testing_loss))
+            self.graph_loss(training_loss, testing_loss, loss_calc_freq, alpha)
+
 
     def graph_loss(self, training_loss, testing_loss, loss_calc_freq, alpha, num_x_axis_ticks=10):
         """Graphs the model's loss over time.

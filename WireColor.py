@@ -3,10 +3,10 @@ import random
 
 
 class WireColor(Enum):
-    RED = (0, 0, 0, 1)
-    BLUE = (0, 0, 1, 0)
-    YELLOW = (0, 1, 0, 0)
     GREEN = (1, 0, 0, 0)
+    YELLOW = (0, 1, 0, 0)
+    BLUE = (0, 0, 1, 0)
+    RED = (0, 0, 0, 1)
     NO_WIRE = (0, 0, 0, 0)
 
 
