@@ -65,6 +65,47 @@ class SecondTaskTrainer:
             self.samples.append(BombDiagram(self.diagram_size, True))
             self.independent_test_data.append(BombDiagram(self.diagram_size, True))
 
+    def loss(self, bomb_diagram):
+        """Calculates the loss of the model on a single sample using the log loss function.
+
+        Args:
+            bomb_diagram: the domb diagram used to calculate the loss
+
+        Returns:
+            the loss of the function based on the bomb diagram and the predicted result
+        """
+        image_x = bomb_diagram.get_flat_image()
+        predicted_val = self.multiclass_classification(image_x, self.weights_red, self.weights_blue, self.weights_green, self.weights_yellow)
+        observed_val = np.array(BombDiagram.get_wire_to_cut(bomb_diagram).value) # true_label_y = np.array(BombDiagram.get_wire_to_cut(input).value)
+        return self.categorical_cross_entropy_loss(predicted_val, observed_val)
+
+    def calc_loss_on_samples(self):
+        """Calculates the mean loss of the model based on the training data.
+
+        Returns:
+            the mean loss of the model based on the training data
+        """
+        loss_sum = 0
+        count = 0
+        for sample in self.samples:
+            loss_sum += self.loss(sample)
+            count += 1
+        for sample in self.used_samples:
+            loss_sum += self.loss(sample)
+            count += 1
+        return loss_sum / count
+
+    def calc_loss_on_independent_data(self):
+        """Calculates the mean loss of the model based on the independent testing data.
+
+                Returns:
+                    the mean loss of the model based on the independent testing data
+                """
+        loss_sum = 0
+        for sample in self.independent_test_data:
+            loss_sum += self.loss(sample)
+        return loss_sum / len(self.independent_test_data)
+
     # − ∑_c=1 I{y = c} ln p_c
     def categorical_cross_entropy_loss(self,y_true, y_predicted):
         epsilon = 1e-15
@@ -101,11 +142,12 @@ class SecondTaskTrainer:
 
         training_loss = []
         testing_loss = []
-        print(self.weights_red)
         for step in range(num_steps):
             # random select a datapoint
             random_index = np.random.randint(len(self.samples))
             input = self.samples[random_index]
+            # input = self.samples.pop()
+            # self.used_samples.append(input)
             image_x = BombDiagram.get_flat_image(input)
             true_label_y = np.array(BombDiagram.get_wire_to_cut(input).value)
 
@@ -113,7 +155,7 @@ class SecondTaskTrainer:
             output_probs = self.multiclass_classification(image_x, self.weights_red, self.weights_blue, self.weights_green, self.weights_yellow)
 
             # getting training loss
-            loss = self.categorical_cross_entropy_loss(true_label_y, output_probs)
+            # loss = self.categorical_cross_entropy_loss(true_label_y, output_probs)
 
             # stochastic gradient decsent
             # error = (output_probs - true_label_y)
@@ -127,20 +169,23 @@ class SecondTaskTrainer:
             self.weights_yellow = self.weights_yellow - alpha * (output_probs[3] - true_label_y[3])  * image_x
 
 
-            if step % 1000 == 0:
+            if step % 10000 == 0:
                 # test on testing sample
-                random_index = np.random.randint(len(self.independent_test_data))
-                test_sample = self.independent_test_data[random_index] 
-                test_image_x = BombDiagram.get_flat_image(test_sample)
-                test_true_label_y = np.array(BombDiagram.get_wire_to_cut(test_sample).value)
-                test_output_probs = self.multiclass_classification(test_image_x, self.weights_red, self.weights_blue, self.weights_green, self.weights_yellow)
-                test_loss = self.categorical_cross_entropy_loss(test_true_label_y, test_output_probs)
+                # random_index = np.random.randint(len(self.independent_test_data))
+                # test_sample = self.independent_test_data[random_index] 
+                # test_image_x = BombDiagram.get_flat_image(test_sample)
+                # test_true_label_y = np.array(BombDiagram.get_wire_to_cut(test_sample).value)
+                # test_output_probs = self.multiclass_classification(test_image_x, self.weights_red, self.weights_blue, self.weights_green, self.weights_yellow)
+                # test_loss = self.categorical_cross_entropy_loss(test_true_label_y, test_output_probs)
 
-                training_loss.append(loss)
-                testing_loss.append(test_loss)
-                print("Step: ", step," traing loss: ", np.sum(training_loss)/len(training_loss), " testing loss: ", np.sum(testing_loss)/len(testing_loss))
+                training_loss.append(self.calc_loss_on_samples())
+                testing_loss.append(self.calc_loss_on_independent_data())
+                print("Step: ", step," traing loss: ", training_loss[-1], " testing loss: ", testing_loss[-1])
 
         # graph
+        training_loss.append(self.calc_loss_on_samples())
+        testing_loss.append(self.calc_loss_on_independent_data())
+        print("Step: ", step," traing loss: ", training_loss[-1], " testing loss: ", testing_loss[-1])
         self.graph_loss(training_loss, testing_loss)
 
 

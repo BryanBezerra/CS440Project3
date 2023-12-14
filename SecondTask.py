@@ -102,5 +102,5 @@ def training_model_sgd(x, weights_red, weights_blue, weights_green, weights_yell
 
 
 a = SecondTaskTrainer()
-a.add_generated_samples(5000)
-a.stochastic_gradient_desecent(0.035,1000000)
+a.add_generated_samples(50000)
+a.stochastic_gradient_desecent(0.035,5000000)
