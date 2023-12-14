@@ -20,6 +20,7 @@
 # SGD but change the gradient loss (need to take the derivative of loss function that uses softmax)
 
 import numpy as np
+from SecondTaskTrainer import SecondTaskTrainer
 
 # − ∑_c=1 I{y = c} ln p_c
 def categorical_cross_entropy_loss(y_true, y_predicted):
@@ -98,3 +99,8 @@ def training_model_sgd(x, weights_red, weights_blue, weights_green, weights_yell
 
     # just return the final weights of each color
     return weights_red, weights_blue, weights_green, weights_yellow
+
+
+a = SecondTaskTrainer()
+a.add_generated_samples(5000)
+a.stochastic_gradient_desecent(0.035,1000000)

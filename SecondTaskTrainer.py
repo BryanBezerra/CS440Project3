@@ -103,23 +103,25 @@ class SecondTaskTrainer:
         testing_loss = []
         print(self.weights_red)
         for step in range(num_steps):
+            # random select a datapoint
             random_index = np.random.randint(len(self.samples))
             input = self.samples[random_index]
             image_x = BombDiagram.get_flat_image(input)
-            # print(image_x)
             true_label_y = np.array(BombDiagram.get_wire_to_cut(input).value)
-            # print(true_label_y)
 
+            # softmax regression
             output_probs = self.multiclass_classification(image_x, self.weights_red, self.weights_blue, self.weights_green, self.weights_yellow)
 
+            # getting training loss
             loss = self.categorical_cross_entropy_loss(true_label_y, output_probs)
 
-
+            # stochastic gradient decsent
             error = (output_probs - true_label_y)
             gradient = [[error[0]],[error[1]],[error[2]],[error[3]]] * image_x
             self.weights = self.weights - alpha * gradient
 
             if step % 10000 == 0:
+                # test on testing sample
                 random_index = np.random.randint(len(self.independent_test_data))
                 test_sample = self.independent_test_data[random_index] 
                 test_image_x = BombDiagram.get_flat_image(test_sample)
@@ -131,6 +133,7 @@ class SecondTaskTrainer:
                 testing_loss.append(test_loss)
                 print("Step: ", step," traing loss: ", np.sum(training_loss)/len(training_loss), " testing loss: ", np.sum(testing_loss)/len(testing_loss))
 
+        # graph
         self.graph_loss(training_loss, testing_loss)
 
 
