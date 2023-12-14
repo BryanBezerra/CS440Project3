@@ -116,11 +116,18 @@ class SecondTaskTrainer:
             loss = self.categorical_cross_entropy_loss(true_label_y, output_probs)
 
             # stochastic gradient decsent
-            error = (output_probs - true_label_y)
-            gradient = [[error[0]],[error[1]],[error[2]],[error[3]]] * image_x
-            self.weights = self.weights - alpha * gradient
+            # error = (output_probs - true_label_y)
+            # gradient = [[error[0]],[error[1]],[error[2]],[error[3]]] * image_x
+            # self.weights = self.weights - alpha * gradient
 
-            if step % 10000 == 0:
+            # stochastic gradient decsent
+            self.weights_red = self.weights_red - alpha * (output_probs[0] - true_label_y[0]) * image_x
+            self.weights_blue = self.weights_blue - alpha * (output_probs[1] - true_label_y[1]) * image_x
+            self.weights_green = self.weights_green - alpha * (output_probs[2] - true_label_y[2])  * image_x
+            self.weights_yellow = self.weights_yellow - alpha * (output_probs[3] - true_label_y[3])  * image_x
+
+
+            if step % 1000 == 0:
                 # test on testing sample
                 random_index = np.random.randint(len(self.independent_test_data))
                 test_sample = self.independent_test_data[random_index] 
