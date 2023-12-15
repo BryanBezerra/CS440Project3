@@ -52,7 +52,8 @@ class SecondTaskTrainer:
         Returns:
             A numpy array containing the starting weights for the model.
         """
-        num_features = self.diagram_size * self.diagram_size * self.NUM_COLORS + 1
+        non_linear_features_near_column_product = self.diagram_size / 2
+        num_features = self.diagram_size * self.diagram_size * self.NUM_COLORS + 1 + (int)(non_linear_features_near_column_product)
         start_magnitude = ((num_features ** 0.5) ** -1)
         return np.random.uniform(-start_magnitude, start_magnitude, num_features)
 
@@ -65,6 +66,20 @@ class SecondTaskTrainer:
         for i in range(num_samples):
             self.samples.append(BombDiagram(self.diagram_size, True))
             self.independent_test_data.append(BombDiagram(self.diagram_size, True))
+
+    # part2
+    def add_non_linear_feature(self, bomb_diagram):
+        image_array = bomb_diagram.get_image()
+        image_x = bomb_diagram.get_flat_image()
+        (_,col,_) = np.shape(image_array)
+        temp = []
+        
+        # add dot_product(x_i, x_j) for very i + 1 = j as column index
+        for i in range(0, col, 2):
+            temp_dot_prod = np.sum(image_array[:,i] * image_array[:,i+1])
+            temp.append(temp_dot_prod)
+            
+        return np.concatenate((image_x, temp))
 
     def refresh_samples(self):
         self.samples = self.samples.copy() + self.used_samples.copy()
@@ -80,10 +95,11 @@ class SecondTaskTrainer:
         Returns:
             the loss of the function based on the bomb diagram and the predicted result
         """
+        epsilon = 1e-15
         predicted_out = self.multiclass_classification(bomb_diagram)
         observed_out = np.array(bomb_diagram.get_wire_to_cut().value)
         # Categorical Cross Entropy Loss
-        return np.sum(observed_out * (-np.log(predicted_out)))
+        return np.sum(-np.log(np.dot(predicted_out, observed_out) + epsilon)) / len(observed_out)
 
     def calc_loss_on_samples(self):
         """Calculates the mean loss of the model based on the training data.
@@ -114,7 +130,7 @@ class SecondTaskTrainer:
 
     # probabilities : [0.2395125813000004, 0.2290498266336638, 0.3053224292131634, 0.2261151628531726]
     def multiclass_classification(self, bomb_diagram):
-        input_vector = bomb_diagram.get_flat_image()
+        input_vector = self.add_non_linear_feature(bomb_diagram)
         dot_product_red = np.dot(input_vector, self.weights_red)
         dot_product_blue = np.dot(input_vector, self.weights_blue)
         dot_product_green = np.dot(input_vector, self.weights_green)
@@ -154,7 +170,7 @@ class SecondTaskTrainer:
         data_point = self.samples.pop()
         self.used_samples.append(data_point)
         prediction = self.multiclass_classification(data_point)
-        flat_image = data_point.get_flat_image()
+        flat_image = self.add_non_linear_feature(data_point)
         # Green Weights
         loss_gradient = (prediction[0] - data_point.get_wire_to_cut().value[0]) * flat_image
         self.weights_green = self.weights_green - alpha * loss_gradient
