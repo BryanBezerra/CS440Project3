@@ -1,23 +1,3 @@
-# Input Space 
-# Same as the first task which is vector size of 1601
-
-# Output Space
-# The color of the third laid down wire. Blue, Yellow, Green or Red 
-# P(of being Blue) - P(of being Red) - P(of being Yellow) - P(of being Green)
-# Probability of belonging to each class
-
-# Model Space
-# Multi Class Classification
-# W_a = weight vector associated with a - W_b = weight vector associated with b  - W_c = weight vector associated with c
-# F(x) = ( e^(W_a . x)/SUM_k(e^(w_k . x))  ,   e^(W_b . x)/SUM_k(e^(w_k . x))  ,  e^(W_c . x)/SUM_k(e^(w_k . x)) )
-# F(x) is a three dimensional output function of our input
-
-# Loss Function
-# Categorical cross entropy loss (softmax function)
-
-# Training Algorithm
-# Grimport sys
-
 import numpy as np
 import matplotlib.pyplot as plt
 import random
@@ -70,17 +50,17 @@ class SecondTaskTrainer:
     def add_non_linear_feature(self, bomb_diagram):
         """Adding non-linear feature and append the variables at the end of the flatten image vector
 
-            Since this part is asking for which wire to cut it is useful to consider the column of the image
-            and find the relationship between column which is off vertical wires.
+        Since this part is asking for which wire to cut it is useful to consider the column of the image
+        and find the relationship between column which is off vertical wires.
 
-            General idea:
-                Image one hot vector:
-                Linear part:                         Non-Linear part:
-                (col 1) (col 2) (col 3) ... (col N) (col 1 * col 2) (col 3 * col 4) ... (col i * col j)
-                x_1     x_2     x_3         x_N     (x_1 * x_2)     (x_3 * x_4)         (x_i * x_j)
+        General idea:
+            Image one hot vector:
+            Linear part:                         Non-Linear part:
+            (col 1) (col 2) (col 3) ... (col N) (col 1 * col 2) (col 3 * col 4) ... (col i * col j)
+            x_1     x_2     x_3         x_N     (x_1 * x_2)     (x_3 * x_4)         (x_i * x_j)
 
-            Args:
-                bomb_diagram: the domb diagram used to calculate the loss
+        Args:
+            bomb_diagram: the domb diagram used to calculate the loss
         """
         
         image_array = bomb_diagram.get_image()
@@ -142,8 +122,16 @@ class SecondTaskTrainer:
             loss_sum += self.loss(sample)
         return loss_sum / len(self.independent_test_data)
 
-    # probabilities : [0.2395125813000004, 0.2290498266336638, 0.3053224292131634, 0.2261151628531726]
     def multiclass_classification(self, bomb_diagram):
+        """Applies softmax classification to predict which wire should be cut based on the bomb diagram.
+
+        Args:
+            bomb_diagram: the diagram to be analyzed
+
+        Returns:
+            A numpy array of four probabilities that each wire should be cut. The sum of the probabilities is 1.
+            [P(green), P(yellow), P(blue), P(red)]
+        """
         input_vector = self.add_non_linear_feature(bomb_diagram)
         dot_product_red = np.dot(input_vector, self.weights_red)
         dot_product_blue = np.dot(input_vector, self.weights_blue)
@@ -167,6 +155,14 @@ class SecondTaskTrainer:
         return output
 
     def predict(self, bomb_diagram):
+        """Uses the model to predict which wire needs to be cut to disarm the bomb.
+
+        Args:
+            bomb_diagram: the bomb diagram to be predicted
+
+        Return:
+            the color of the wire to cut
+        """
         predicted_values = self.multiclass_classification(bomb_diagram)
         result = WireColor.GREEN
         max_probability = predicted_values[0]
@@ -180,32 +176,51 @@ class SecondTaskTrainer:
             result = WireColor.RED
         return result
 
-    def train_on_one_sample(self, alpha):
+    def train_on_one_sample(self, alpha, regularization_lambda):
+        """Trains the model on a single datapoint.
+
+        Args:
+            alpha: the learning rate of the model, must be > 0
+            regularization_lambda: higher number creates preference for smaller weights
+        """
         data_point = self.samples.pop()
         self.used_samples.append(data_point)
         prediction = self.multiclass_classification(data_point)
         flat_image = self.add_non_linear_feature(data_point)
         # Green Weights
         loss_gradient = (prediction[0] - data_point.get_wire_to_cut().value[0]) * flat_image
-        self.weights_green = self.weights_green - alpha * loss_gradient
+        ridge_regularization = 2 * regularization_lambda * np.sum(self.weights_green)
+        self.weights_green = self.weights_green - alpha * (loss_gradient * ridge_regularization)
         # Yellow Weights
         loss_gradient = (prediction[1] - data_point.get_wire_to_cut().value[1]) * flat_image
-        self.weights_yellow = self.weights_yellow - alpha * loss_gradient
+        ridge_regularization = 2 * regularization_lambda * np.sum(self.weights_yellow)
+        self.weights_yellow = self.weights_yellow - alpha * (loss_gradient * ridge_regularization)
         # Blue Weights
         loss_gradient = (prediction[2] - data_point.get_wire_to_cut().value[2]) * flat_image
-        self.weights_blue = self.weights_blue - alpha * loss_gradient
+        ridge_regularization = 2 * regularization_lambda * np.sum(self.weights_blue)
+        self.weights_blue = self.weights_blue - alpha * (loss_gradient * ridge_regularization)
         # Red Weights
         loss_gradient = (prediction[3] - data_point.get_wire_to_cut().value[3]) * flat_image
-        self.weights_red = self.weights_red - alpha * loss_gradient
+        ridge_regularization = 2 * regularization_lambda * np.sum(self.weights_red)
+        self.weights_red = self.weights_red - alpha * (loss_gradient * ridge_regularization)
 
-    def stochastic_gradient_descent(self, num_steps, alpha, loss_calc_freq, show_training_data=True):
+    def train_model_stochastic(self, num_steps, alpha, reg_lambda, loss_calc_freq, show_training_data=True):
+        """Uses stochastic gradient to train the model on the training data.
+
+        Args:
+            num_steps: how many times the model will be trained on a random data point
+            alpha: the learning rate of the model, must be > 0
+            reg_lambda: higher number creates preference for smaller weights
+            loss_calc_freq: how often the program calculates and prints the current loss on all sample and test data
+            show_training_data: true if the program is to print and graph loss data, otherwise false; defaults true
+        """
         training_loss = []
         testing_loss = []
         for step in range(num_steps):
             if len(self.samples) == 0:
                 self.refresh_samples()
 
-            self.train_on_one_sample(alpha)
+            self.train_on_one_sample(alpha, reg_lambda)
 
             if show_training_data:
                 if step % loss_calc_freq == 0:
