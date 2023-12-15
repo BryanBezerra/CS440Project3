@@ -176,7 +176,7 @@ class SecondTaskTrainer:
             result = WireColor.RED
         return result
 
-    def train_on_one_sample(self, alpha, regularization_lambda):
+    def train_on_one_sample(self, alpha):
         """Trains the model on a single datapoint.
 
         Args:
@@ -189,20 +189,16 @@ class SecondTaskTrainer:
         flat_image = self.add_non_linear_feature(data_point)
         # Green Weights
         loss_gradient = (prediction[0] - data_point.get_wire_to_cut().value[0]) * flat_image
-        ridge_regularization = 2 * regularization_lambda * np.sum(self.weights_green)
-        self.weights_green = self.weights_green - alpha * (loss_gradient * ridge_regularization)
+        self.weights_green = self.weights_green - alpha * (loss_gradient)
         # Yellow Weights
         loss_gradient = (prediction[1] - data_point.get_wire_to_cut().value[1]) * flat_image
-        ridge_regularization = 2 * regularization_lambda * np.sum(self.weights_yellow)
-        self.weights_yellow = self.weights_yellow - alpha * (loss_gradient * ridge_regularization)
+        self.weights_yellow = self.weights_yellow - alpha * (loss_gradient)
         # Blue Weights
         loss_gradient = (prediction[2] - data_point.get_wire_to_cut().value[2]) * flat_image
-        ridge_regularization = 2 * regularization_lambda * np.sum(self.weights_blue)
-        self.weights_blue = self.weights_blue - alpha * (loss_gradient * ridge_regularization)
+        self.weights_blue = self.weights_blue - alpha * (loss_gradient)
         # Red Weights
         loss_gradient = (prediction[3] - data_point.get_wire_to_cut().value[3]) * flat_image
-        ridge_regularization = 2 * regularization_lambda * np.sum(self.weights_red)
-        self.weights_red = self.weights_red - alpha * (loss_gradient * ridge_regularization)
+        self.weights_red = self.weights_red - alpha * (loss_gradient)
 
     def train_model_stochastic(self, num_steps, alpha, reg_lambda, loss_calc_freq, show_training_data=True):
         """Uses stochastic gradient to train the model on the training data.
@@ -220,7 +216,7 @@ class SecondTaskTrainer:
             if len(self.samples) == 0:
                 self.refresh_samples()
 
-            self.train_on_one_sample(alpha, reg_lambda)
+            self.train_on_one_sample(alpha)
 
             if show_training_data:
                 if step % loss_calc_freq == 0:
