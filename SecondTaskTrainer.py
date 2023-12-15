@@ -181,7 +181,6 @@ class SecondTaskTrainer:
 
         Args:
             alpha: the learning rate of the model, must be > 0
-            regularization_lambda: higher number creates preference for smaller weights
         """
         data_point = self.samples.pop()
         self.used_samples.append(data_point)
@@ -200,13 +199,12 @@ class SecondTaskTrainer:
         loss_gradient = (prediction[3] - data_point.get_wire_to_cut().value[3]) * flat_image
         self.weights_red = self.weights_red - alpha * (loss_gradient)
 
-    def train_model_stochastic(self, num_steps, alpha, reg_lambda, loss_calc_freq, show_training_data=True):
+    def train_model_stochastic(self, num_steps, alpha, loss_calc_freq, show_training_data=True):
         """Uses stochastic gradient to train the model on the training data.
 
         Args:
             num_steps: how many times the model will be trained on a random data point
             alpha: the learning rate of the model, must be > 0
-            reg_lambda: higher number creates preference for smaller weights
             loss_calc_freq: how often the program calculates and prints the current loss on all sample and test data
             show_training_data: true if the program is to print and graph loss data, otherwise false; defaults true
         """
