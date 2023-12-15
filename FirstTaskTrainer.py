@@ -53,6 +53,60 @@ class FirstTaskTrainer:
             self.samples.append(BombDiagram(self.diagram_size))
             self.independent_test_data.append(BombDiagram(self.diagram_size))
 
+    def add_non_linear_feature(self, bomb_diagram):
+        """Adding non-linear feature and append the variables at the end of the flatten image vector
+
+            Since this part is identifying whether a graph is dangerous or not, then it is worth to 
+            check how two colors are neared to each other and count the number of colors 
+            (i.e. dot product of cell i and cell j = 1 and check which color it belong to). Worth 
+            notic white color dot with any other color would be equal to 0
+
+            [ ][G][ ][R][ ]
+            [Y][Y][Y][Y][Y]
+            [ ][G][ ][R][ ]
+            [B][G][B][B][B]
+            [ ][G][ ][R][ ]
+
+            Args:
+                bomb_diagram: the domb diagram used to calculate the loss
+        """
+
+        image_x = bomb_diagram.get_flat_image()
+        # count 
+        # red * red 
+        red_red = 0
+        # blue * blue
+        blue_blue = 0
+        # green * green 
+        green_green = 0
+        # yellow * yellow
+        yellow_yellow = 0
+        # some_color * white 
+        rand_white = 0
+
+        for i in (1, len(image_x), 4):
+            first_color = image_x[i:i+3]
+            second_color = image_x[i+4:i+7]
+            if np.sum(first_color * second_color) == 1:
+                if(image_x[i] == 1):
+                    green_green += 1
+                elif(image_x[i+1]) == 1:
+                    yellow_yellow += 1
+                elif(image_x[i+2] == 1):
+                    blue_blue += 1
+                elif(image_x[i+3] == 1):
+                    red_red += 1
+            else:
+                rand_white += 1
+
+        np.append(image_x, red_red)
+        np.append(image_x, blue_blue)
+        np.append(image_x, green_green)
+        np.append(image_x, yellow_yellow)
+        np.append(image_x, rand_white)
+
+        return image_x
+
     def clear_samples(self):
         """Clears the training and testing data"""
         self.samples.clear()
@@ -67,7 +121,7 @@ class FirstTaskTrainer:
         Returns:
             the result of the sigmoid function applied to the dot product of the model weights and bomb diagram
         """
-        input_vec = bomb_diagram.get_flat_image()
+        input_vec = self.add_non_linear_feature(bomb_diagram)
         return 1 / (1 + math.e ** (-np.dot(input_vec, self.weights)))
 
     def predict(self, bomb_diagram):
@@ -141,7 +195,7 @@ class FirstTaskTrainer:
         data_point = self.samples.pop()
         self.used_samples.append(data_point)
         prediction = self.sigmoid(data_point)
-        loss_gradient = (prediction - data_point.is_dangerous()) * data_point.get_flat_image()
+        loss_gradient = (prediction - data_point.is_dangerous()) * self.add_non_linear_feature(data_point)
         ridge_regularization = 2 * regularization_lambda * np.sum(self.weights)
         self.weights = self.weights - alpha * (loss_gradient + ridge_regularization)
 

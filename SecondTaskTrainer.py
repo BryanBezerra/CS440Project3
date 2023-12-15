@@ -67,8 +67,22 @@ class SecondTaskTrainer:
             self.samples.append(BombDiagram(self.diagram_size, True))
             self.independent_test_data.append(BombDiagram(self.diagram_size, True))
 
-    # part2
     def add_non_linear_feature(self, bomb_diagram):
+        """Adding non-linear feature and append the variables at the end of the flatten image vector
+
+            Since this part is asking for which wire to cut it is useful to consider the column of the image
+            and find the relationship between column which is off vertical wires.
+
+            General idea:
+                Image one hot vector:
+                Linear part:                         Non-Linear part:
+                (col 1) (col 2) (col 3) ... (col N) (col 1 * col 2) (col 3 * col 4) ... (col i * col j)
+                x_1     x_2     x_3         x_N     (x_1 * x_2)     (x_3 * x_4)         (x_i * x_j)
+
+            Args:
+                bomb_diagram: the domb diagram used to calculate the loss
+        """
+        
         image_array = bomb_diagram.get_image()
         image_x = bomb_diagram.get_flat_image()
         (_,col,_) = np.shape(image_array)
